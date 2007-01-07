@@ -118,22 +118,20 @@ class Services_HyperEstraier_Request_Stream implements Services_HyperEstraier_Re
         }
 
         // process the response
+        $body = stream_get_contents($fp);
         $meta_data = stream_get_meta_data($fp);
-        if (strcasecmp($meta_data['wrapper_type'], 'cURL') == 0) {
-            fclose($fp);
-            $errmsg = 'Services_HyperEstraier does not work with the cURL'
-                    . ' HTTP stream wrappers, please use another HTTP client.';
-            $err = PEAR::raiseError($errmsg);
-            Services_HyperEstraier::pushError($err);
-            return $err;
-        }
         if (!empty($meta_data['timed_out'])) {
             fclose($fp);
             $err = PEAR::raiseError('Connection timed out.');
             Services_HyperEstraier::pushError($err);
             return $err;
         }
-        $first_header = array_shift($meta_data['wrapper_data']);
+        if (strcasecmp($meta_data['wrapper_type'], 'cURL') == 0) {
+            $raw_headers = $meta_data['wrapper_data']['headers'];
+        } else {
+            $raw_headers = $meta_data['wrapper_data'];
+        }
+        $first_header = array_shift($raw_headers);
         if (!preg_match('!^HTTP/(.+?) (\\d+) ?(.*)!', $first_header, $matches)) {
             fclose($fp);
             $err = PEAR::raiseError('Malformed response.');
@@ -144,11 +142,10 @@ class Services_HyperEstraier_Request_Stream implements Services_HyperEstraier_Re
         // get the response data
         $code = (int)$matches[2];
         $headers = array();
-        foreach ($meta_data['wrapper_data'] as $header) {
+        foreach ($raw_headers as $header) {
             list($name, $value) = explode(':', $header, 2);
             $headers[strtolower($name)] = ltrim($value);
         }
-        $body = stream_get_contents($fp);
 
         // close the stream
         fclose($fp);
