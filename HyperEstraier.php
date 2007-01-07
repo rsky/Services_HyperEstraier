@@ -194,7 +194,8 @@ class Services_HyperEstraier_Utility
         if (!is_null($pxhost) && !is_null($pxport)) {
             $params['http']['proxy'] = sprintf('tcp://%s:%d', $pxhost, $pxport);
         }
-        $reqheads['user-agent'] = Services_HyperEstraier_Utility::getUserAgent('stream');
+        $reqheads['user-agent'] = sprintf('Services_HyperEstraier/%s (PHP %s)',
+            SERVICES_HYPERESTRAIER_VERSION, PHP_VERSION);
         $params['http']['header'] = '';
         foreach ($reqheads as $key => $value) {
             $params['http']['header'] .= sprintf("%s: %s\r\n", $key, $value);
@@ -339,21 +340,6 @@ class Services_HyperEstraier_Utility
         return Services_HyperEstraier::pushError($error);
     }
 
-    /**
-     * Get the HTTP User-Agent header value
-     *
-     * @param   string  $type   The type of HTTP request handler.
-     * @return  string  The name of HTTP User-Agent.
-     * @access  public
-     * @static
-     * @ignore
-     */
-    public static function getUserAgent($type)
-    {
-        return sprintf('Services_HyperEstraier/%s (PHP %s + %s)',
-            SERVICES_HYPERESTRAIER_VERSION, PHP_VERSION, $type);
-    }
-
     // }}}
 }
 
@@ -367,7 +353,7 @@ class Services_HyperEstraier_Utility
  * @package     Services_HyperEstraier
  * @author      Ryusuke SEKIYAMA <rsky0711@gmail.com>
  * @version     Release: @package_version@
- * @since       Class available since Release 0.6.0
+ * @since       Class available since Release 0.2.0
  * @ignore
  */
 class Services_HyperEstraier_Response
