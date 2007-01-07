@@ -128,80 +128,7 @@ class Services_HyperEstraier
  */
 class Services_HyperEstraier_Utility
 {
-    // {{{ constants
-
-    /**
-     * HTTP request: stream funcions
-     */
-    const HTTP_REQUEST_STREAM = 1;
-
-    /**
-     * HTTP request: PEAR::HTTP_Request
-     */
-    const HTTP_REQUEST_PEAR = 2;
-
-    /**
-     * HTTP request: pecl_http
-     */
-    const HTTP_REQUEST_PECL = 4;
-
-    /**
-     * HTTP request: Zend_Http_Client
-     */
-    const HTTP_REQUEST_ZEND = 8;
-
-    // }}}
-    // {{{ private properties
-
-    /**
-     * The name of HTTP request class which is used in
-     * Services_HyperEstraier_Utility::shuttleUrl().
-     *
-     * @var string
-     * @access  private
-     * @static
-     */
-    private static $_request;
-
-    // }}}
     // {{{ public methods
-
-    /**
-     * Set the HTTP request class.
-     *
-     * @param   int $type   The type of HTTP request class.
-     * - `Services_HyperEstraier_Utility::HTTP_REQUEST_STREAM' uses stream functions.
-     * - `Services_HyperEstraier_Utility::HTTP_REQUEST_PEAR' uses PEAR::HTTP_Request.
-     * - `Services_HyperEstraier_Utility::HTTP_REQUEST_PECL' uses pecl_http.
-     * - `Services_HyperEstraier_Utility::HTTP_REQUEST_ZEND' uses Zend_Http_Client.
-     * @return  bool    False if an invalid type given, else true.
-     * @access  public
-     * @static
-     */
-    public static function setHttpRequest($type)
-    {
-        switch ($type) {
-            case self::HTTP_REQUEST_STREAM:
-                require_once 'Services/HyperEstraier/Request/Stream.php';
-                self::$_request = 'Services_HyperEstraier_Request_Stream';
-                break;
-            case self::HTTP_REQUEST_PEAR:
-                require_once 'Services/HyperEstraier/Request/PEAR.php';
-                self::$_request = 'Services_HyperEstraier_Request_PEAR';
-                break;
-            case self::HTTP_REQUEST_PECL:
-                require_once 'Services/HyperEstraier/Request/PECL.php';
-                self::$_request = 'Services_HyperEstraier_Request_PECL';
-                break;
-            case self::HTTP_REQUEST_ZEND:
-                require_once 'Services/HyperEstraier/Request/Zend.php';
-                self::$_request = 'Services_HyperEstraier_Request_Zend';
-                break;
-            default:
-                return false;
-        }
-        return true;
-    }
 
     /**
      * Check types of arguments.
@@ -246,7 +173,6 @@ class Services_HyperEstraier_Utility
      *                  of response are stored. On error, returns PEAR_Error.
      * @access  public
      * @static
-     * @see Services_HyperEstraier_Request::perform()
      * @ignore
      */
     public static function shuttleUrl($url, $pxhost = null, $pxport = null,
@@ -255,8 +181,71 @@ class Services_HyperEstraier_Utility
         if (is_null($reqheads)) {
             $reqheads = array();
         }
-        $params = array($url, $pxhost, $pxport, $outsec, $reqheads, $reqbody);
-        return call_user_func(array(self::$_request, 'perform'), $params);
+
+        // set request parameters
+        $params = array('http' => array());
+        if (is_null($reqbody)) {
+            $params['http']['method'] = 'GET';
+        } else {
+            $params['http']['method'] = 'POST';
+            $params['http']['content'] = $reqbody;
+            $reqheads['content-length'] = strlen($reqbody);
+        }
+        if (!is_null($pxhost) && !is_null($pxport)) {
+            $params['http']['proxy'] = sprintf('tcp://%s:%d', $pxhost, $pxport);
+        }
+        $reqheads['user-agent'] = Services_HyperEstraier_Utility::getUserAgent('stream');
+        $params['http']['header'] = '';
+        foreach ($reqheads as $key => $value) {
+            $params['http']['header'] .= sprintf("%s: %s\r\n", $key, $value);
+        }
+        $context = stream_context_create($params);
+
+        // open a stream and send the request
+        $fp = fopen($url, 'r', false, $context);
+        if (!$fp) {
+            $err = PEAR::raiseError(sprintf('Cannot connect to %s.', $url));
+            self::push_error($err);
+            return $err;
+        }
+        if ($outsec >= 0) {
+            stream_set_timeout($fp, $outsec);
+        }
+
+        // get the response body
+        $body = stream_get_contents($fp);
+
+        // parse the response headers
+        $meta_data = stream_get_meta_data($fp);
+        if (!empty($meta_data['timed_out'])) {
+            fclose($fp);
+            $err = PEAR::raiseError('Connection timed out.');
+            Services_HyperEstraier::pushError($err);
+            return $err;
+        }
+        if (strcasecmp($meta_data['wrapper_type'], 'cURL') == 0) {
+            $raw_headers = $meta_data['wrapper_data']['headers'];
+        } else {
+            $raw_headers = $meta_data['wrapper_data'];
+        }
+        $http_status = array_shift($raw_headers);
+        if (!preg_match('!^HTTP/(.+?) (\\d+) ?(.*)!', $http_status, $matches)) {
+            fclose($fp);
+            $err = PEAR::raiseError('Malformed response.');
+            Services_HyperEstraier::pushError($err);
+            return $err;
+        }
+        $code = (int)$matches[2];
+        $headers = array();
+        foreach ($raw_headers as $header) {
+            list($name, $value) = explode(':', $header, 2);
+            $headers[strtolower($name)] = ltrim($value);
+        }
+
+        // close the stream
+        fclose($fp);
+
+        return new Services_HyperEstraier_Response($code, $headers, $body);
     }
 
     /**
@@ -369,61 +358,66 @@ class Services_HyperEstraier_Utility
 }
 
 // }}}
-// {{{ interface Services_HyperEstraier_Request
+// {{{ class Services_HyperEstraier_Response
 
 /**
- * Interface for HTTP request.
+ * Class for HTTP response.
  *
  * @category    Web Services
  * @package     Services_HyperEstraier
  * @author      Ryusuke SEKIYAMA <rsky0711@gmail.com>
  * @version     Release: @package_version@
- * @since       Interface available since Release 0.6.0
+ * @since       Class available since Release 0.6.0
  * @ignore
  */
-interface Services_HyperEstraier_Request
+class Services_HyperEstraier_Response
 {
-    // {{{ public methods
+    // {{{ private properties
 
     /**
-     * Perform an interaction of a URL.
+     * The status code
      *
-     * @param   string  $url        A URL.
-     * @param   string  $pxhost     The host name of a proxy.
-     *                              If it is `null', it is not used.
-     * @param   int     $pxport     The port number of the proxy.
-     * @param   int     $outsec     Timeout in seconds.
-     *                              If it is negative, it is not used.
-     * @param   array   $reqheads   An array of extension headers.
-     *                              If it is `null', it is not used.
-     * @param   string  $reqbody    The pointer of the entitiy body of request.
-     *                              If it is `null', "GET" method is used.
-     * @return  object  Services_HyperEstraier_Response
-     *                  An object into which headers and the entity body
-     *                  of response are stored. On error, returns PEAR_Error.
-     * @access  public
-     * @static
+     * @var int
+     * @access  private
      */
-    public static function perform($url, $pxhost, $pxport, $outsec, $reqheads, $reqbody);
+    private $_code;
+
+    /**
+     * Headers of response
+     *
+     * @var array
+     * @access  private
+     */
+    private $_headers;
+
+    /**
+     * The entity body of response
+     *
+     * @var string
+     * @access  private
+     */
+    private $_body;
+
 
     // }}}
-}
+    // {{{ constructor
 
-// }}}
-// {{{ interface Services_HyperEstraier_Response
+    /**
+     * Create a response object.
+     *
+     * @param   int     $code       The status code.
+     * @param   array   $headers    The hash of the headers.
+     * @param   string  $body       The entity body of response,
+     * @access  public
+     */
+    public function __construct($code, array $headers, $body)
+    {
+        $this->_code = $code;
+        $this->_headers = $headers;
+        $this->_body = $body;
+    }
 
-/**
- * Interface for HTTP response.
- *
- * @category    Web Services
- * @package     Services_HyperEstraier
- * @author      Ryusuke SEKIYAMA <rsky0711@gmail.com>
- * @version     Release: @package_version@
- * @since       Interface available since Release 0.6.0
- * @ignore
- */
-interface Services_HyperEstraier_Response
-{
+    // }}}
     // {{{ getter methods
 
     /**
@@ -432,7 +426,10 @@ interface Services_HyperEstraier_Response
      * @return  bool    True if the status code is 200, else false.
      * @access  public
      */
-    public function isSuccess();
+    public function isSuccess()
+    {
+        return ($this->_code == 200);
+    }
 
     /**
      * Determine error.
@@ -440,7 +437,10 @@ interface Services_HyperEstraier_Response
      * @return  bool    True if the status code is not 200, else false.
      * @access  public
      */
-    public function isError();
+    public function isError()
+    {
+        return ($this->_code != 200);
+    }
 
     /**
      * Get the status code.
@@ -448,17 +448,27 @@ interface Services_HyperEstraier_Response
      * @return  int     The status code of the response.
      * @access  public
      */
-    public function getResponseCode();
+    public function getResponseCode()
+    {
+        return $this->_code;
+    }
 
     /**
      * Get the value of a header.
      *
      * @param   string  $name  The name of a header.
      * @return  string  The value of the header.
-     *                  If it does not exist, returns `null'.
+     *                  If it does not exist, returns `false'.
      * @access  public
      */
-    public function getResponseHeader($name);
+    public function getResponseHeader($name)
+    {
+        $name = strtolower($name);
+        if (isset($this->_headers[$name])) {
+            return $this->_headers[$name];
+        }
+        return false;
+    }
 
     /**
      * Get a hash of headers.
@@ -466,7 +476,10 @@ interface Services_HyperEstraier_Response
      * @return  array   All response headers.
      * @access  public
      */
-    public function getResponseHeaders();
+    public function getResponseHeaders()
+    {
+        return $this->_headers;
+    }
 
     /**
      * Get the entity body of response,
@@ -474,7 +487,10 @@ interface Services_HyperEstraier_Response
      * @return  string  The entity body of response.
      * @access  public
      */
-    public function getResponseBody();
+    public function getResponseBody()
+    {
+        return $this->_body;
+    }
 
     // }}}
 }
@@ -496,11 +512,6 @@ class Services_HyperEstraier_ArgumentError extends InvalidArgumentException
 {
     // Just a rename of InvalidArgumentException class.
 }
-
-// }}}
-// {{{ set the default HTTP request type
-
-Services_HyperEstraier_Utility::setHttpRequest(Services_HyperEstraier_Utility::HTTP_REQUEST_STREAM);
 
 // }}}
 
