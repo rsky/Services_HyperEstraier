@@ -117,8 +117,10 @@ class Services_HyperEstraier_Request_Stream implements Services_HyperEstraier_Re
             stream_set_timeout($fp, $outsec);
         }
 
-        // process the response
+        // get the response body
         $body = stream_get_contents($fp);
+
+        // parse the response headers
         $meta_data = stream_get_meta_data($fp);
         if (!empty($meta_data['timed_out'])) {
             fclose($fp);
@@ -131,15 +133,13 @@ class Services_HyperEstraier_Request_Stream implements Services_HyperEstraier_Re
         } else {
             $raw_headers = $meta_data['wrapper_data'];
         }
-        $first_header = array_shift($raw_headers);
-        if (!preg_match('!^HTTP/(.+?) (\\d+) ?(.*)!', $first_header, $matches)) {
+        $http_status = array_shift($raw_headers);
+        if (!preg_match('!^HTTP/(.+?) (\\d+) ?(.*)!', $http_status, $matches)) {
             fclose($fp);
             $err = PEAR::raiseError('Malformed response.');
             Services_HyperEstraier::pushError($err);
             return $err;
         }
-
-        // get the response data
         $code = (int)$matches[2];
         $headers = array();
         foreach ($raw_headers as $header) {
