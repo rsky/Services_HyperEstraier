@@ -320,6 +320,7 @@ class Services_HyperEstraier
 }
 
 // }}}
+
 /*
  * Local variables:
  * mode: php
