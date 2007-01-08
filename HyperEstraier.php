@@ -68,7 +68,7 @@ require_once 'Services/HyperEstraier/Node.php';
 // {{{ class Services_HyperEstraier
 
 /**
- * Class for simple registering and searching.
+ * Class for simple document handling and searching.
  *
  * @category    Web Services
  * @package     Services_HyperEstraier
@@ -81,21 +81,38 @@ class Services_HyperEstraier
 {
     // {{{ private methods
 
+    /**
+     * Get a node object.
+     *
+     * @param   string  $url    The url of a node server.
+     *                          Also includes the username and the password.
+     * @return  object  Services_HyperEstraier_Node
+     * @throws  InvalidArgumentException
+     * @access  private
+     * @static
+     * @ignore
+     */
     private static function _getNode($url)
     {
         static $node = null;
         static $checksum = '';
 
+        // parse the url
+        if (!is_string($url)) {
+            throw new InvalidArgumentException(sprintf(
+                    'Argument#2 should be a kind of integer or string, %s given.',
+                    gettype($id)));
+        }
         if (!($purl = @parse_url($url)) ||
             !isset($purl['scheme']) || strcasecmp($purl['scheme'], 'http') != 0 ||
             !isset($purl['host']) || !isset($purl['path']) ||
             (isset($purl['user']) xor isset($purl['pass'])))
         {
-            throw new RuntimeException('Invalid URL given.');
+            throw new InvalidArgumentException('Invalid URL given.');
         }
 
+        // check if the node object is cached
         $newchecksum = md5($url);
-
         if ($checksum != $newchecksum) {
             $node = new Services_HyperEstraier_Node;
             $nurl = 'http://' . $purl['host'];
@@ -116,15 +133,26 @@ class Services_HyperEstraier
     // }}}
     // {{{ public methods
 
-    public static function register($url, $text, array $attributes = null)
+    /**
+     * Register the text.
+     *
+     * @param   string  $url    The url of a node server.
+     *                          Also includes the username and the password.
+     * @param   string  $text       A text data.
+     * @param   array   $attrs      Associated array of the attributes.
+     *                              At least, requires `@uri' attribute.
+     * @param   array   $keywords   A list of keywords. (optional)
+     * @return  bool    True if success, else false.
+     * @throws  InvalidArgumentException
+     * @access  public
+     * @static
+     */
+    public static function register($url, $text,
+                                    array $attrs,
+                                    array $keywords = null)
     {
         $node = self::_getNode($url);
         $doc = new Services_HyperEstraier_Document;
-        if (!empty($attributes)) {
-            foreach ($attributes as $name => $value) {
-                $doc->addAttribute($name, $value);
-            }
-        }
         foreach (preg_split('/(?:\\r\\n|\\r|\\n)+/', $text) as $line) {
             if (strlen($line)) {
                 if (substr($line, 0, 1) == "\n") {
@@ -133,54 +161,151 @@ class Services_HyperEstraier
                     $doc->addHiddenText($line);
                 }
             }
+        }
+        foreach ($attributes as $name => $value) {
+            $doc->addAttribute($name, $value);
+        }
+        if ($keywords) {
+            $doc->setKeywords($keywords);
         }
         return $node->putDocument($doc);
     }
 
-    public static function update($url, $id, $text, $attributes, $append = false)
+    /**
+     * Update the registered document.
+     *
+     * @param   string  $url    The url of a node server.
+     *                          Also includes the username and the password.
+     * @param   int|string  $id     The ID number of a registered document
+     *                              or the URI of a registered document.
+     * @param   string  $text       An additional text data. (optional)
+     * @param   array   $attrs      Associated array of the attributes. (optional)
+     * @param   array   $keywords   A list of keywords. (optional)
+     * @return  bool    True if success, else false.
+     * @throws  InvalidArgumentException
+     * @access  public
+     * @static
+     */
+    public static function update($url, $id, $text = '',
+                                  array $attrs = null,
+                                  array $keywords = null)
     {
         $node = self::_getNode($url);
         if (is_int($id)) {
             $doc = $node->getDocument($id);
-        } else {
+        } else if (is_string($id)) {
             $doc = $node->getDocumentByUri($id);
+        } else {
+            throw new InvalidArgumentException(sprintf(
+                    'Argument#2 should be a kind of integer or string, %s given.',
+                    gettype($id)));
         }
-        if (is_null($doc)) {
-            return self::register($url, $text, $attributes);
+        if (!$doc) {
+            return false;
         }
-        if (!$append) {
-            if (!self::purge($url, $id)) {
-                return false;
+        if (strlen($text)) {
+            foreach (preg_split('/(?:\\r\\n|\\r|\\n)+/', $text) as $line) {
+                if (strlen($line)) {
+                    if (substr($line, 0, 1) == "\n") {
+                        $doc->addText($line);
+                    } else {
+                        $doc->addHiddenText($line);
+                    }
+                }
             }
-            return self::register($url, $text, $attributes);
         }
-        if (!empty($attributes)) {
+        if ($attributes) {
             foreach ($attributes as $name => $value) {
                 $doc->addAttribute($name, $value);
             }
         }
-        foreach (preg_split('/(?:\\r\\n|\\r|\\n)+/', $text) as $line) {
-            if (strlen($line)) {
-                if (substr($line, 0, 1) == "\n") {
-                    $doc->addText($line);
-                } else {
-                    $doc->addHiddenText($line);
-                }
-            }
+        if ($keywords) {
+            $doc->setKeywords($keywords);
         }
         return $doc->editDocument($doc);
     }
 
+    /**
+     * Replace the registered document.
+     *
+     * @param   string  $url    The url of a node server.
+     *                          Also includes the username and the password.
+     * @param   int|string  $id     The ID number of a registered document
+     *                              or the URI of a registered document.
+     * @param   string  $text       A text data.
+     * @param   array   $attrs      Associated array of the attributes.
+     *                              At least, requires `@uri' attribute.
+     * @param   array   $keywords   A list of keywords. (optional)
+     * @return  bool    True if success, else false.
+     * @throws  InvalidArgumentException
+     * @access  public
+     * @static
+     * @see Services_HyperEstraier::register()
+     * @see Services_HyperEstraier::purge()
+     */
+    public static function replace($url, $id, $text,
+                                   array $attrs,
+                                   array $keywords = null)
+    {
+        $node = self::_getNode($url);
+        if (is_int($id)) {
+            $doc = $node->getDocument($id);
+        } else if (is_string($id)) {
+            $doc = $node->getDocumentByUri($id);
+        } else {
+            throw new InvalidArgumentException(sprintf(
+                    'Argument#2 should be a kind of integer or string, %s given.',
+                    gettype($id)));
+        }
+        if ($doc && !self::purge($url, $id)) {
+            return false;
+        }
+        return self::register($url, $text, $attributes, $keywords);
+    }
+
+    /**
+     * Purge the registered document.
+     *
+     * @param   string  $url    The url of a node server.
+     *                          Also includes the username and the password.
+     * @param   int|string  $id     The ID number of a registered document
+     *                              or the URI of a registered document.
+     * @return  bool    True if success, else false.
+     * @throws  InvalidArgumentException
+     * @access  public
+     * @static
+     */
     public static function purge($url, $id)
     {
         $node = self::_getNode($url);
         if (is_int($id)) {
             return $node->outDocument($id);
-        } else {
+        } else if (is_string($id)) {
             return $node->outDocumentByUri($id);
+        } else {
+            throw new InvalidArgumentException(sprintf(
+                    'Argument#1 should be a kind of integer or string, %s given.',
+                    gettype($id)));
         }
     }
 
+    /**
+     * Search for documents corresponding a phrase.
+     *
+     * @param   string  $url    The url of a node server.
+     *                          Also includes the username and the password.
+     * @param   string  $phrase A search phrase.
+     * @param   int     $limit  The maximum number of retrieval.
+     *                          By default, the number of retrieval is not limited.
+     * @param   int     $offset The number of documents to be skipped.
+     *                          By default, it is 0.
+     * @return  object  Services_HyperEstraier_NodeResult
+     *                  A node result object.
+     *                  On error, returns `null'.
+     * @throws  InvalidArgumentException
+     * @access  public
+     * @static
+     */
     public static function search($url, $phrase, $limit = -1, $offset = 0)
     {
         $node = self::_getNode($url);
