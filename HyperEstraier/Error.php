@@ -84,6 +84,11 @@ class Services_HyperEstraier_Error
      */
     const MALFORMED_RESPONSE = -4;
 
+    /**
+     * error code: HTTP status was not 2XX
+     */
+    const HTTP_NOT_2XX = -5;
+
     // }}}
     // {{{ private properties
 
@@ -105,12 +110,12 @@ class Services_HyperEstraier_Error
      * @access  public
      * @static
      */
-    private static function _getStack()
+    public static function getStack()
     {
         if (!self::$_stack) {
             self::$_stack = &PEAR_ErrorStack::singleton('Services_HyperEstraier');
         }
-        return $stack;
+        return self::$_stack;
     }
 
     /**
@@ -124,7 +129,7 @@ class Services_HyperEstraier_Error
      */
     public static function pushCallback($callback)
     {
-        self::_getStack()->pushCallback($callback);
+        self::getStack()->pushCallback($callback);
     }
 
     /**
@@ -137,7 +142,7 @@ class Services_HyperEstraier_Error
      */
     public static function popCallback()
     {
-        return self::_getStack()->popCallback();
+        return self::getStack()->popCallback();
     }
 
     /**
@@ -162,8 +167,8 @@ class Services_HyperEstraier_Error
         if (!$backtrace) {
             $backtrace = debug_backtrace();
         }
-        return self::_getStack()->push($code, $level, $params,
-                                       $message, $repackage, $backtrace);
+        return self::getStack()->push($code, $level, $params,
+                                      $message, $repackage, $backtrace);
     }
 
     /**
@@ -176,7 +181,7 @@ class Services_HyperEstraier_Error
      */
     public static function pop()
     {
-        return self::_getStack()->pop();
+        return self::getStack()->pop();
     }
 
     /**
@@ -190,7 +195,7 @@ class Services_HyperEstraier_Error
      */
     public static function hasErrors($level = false)
     {
-        return self::_getStack()->hasErrors($level);
+        return self::getStack()->hasErrors($level);
     }
 
     /**
@@ -205,7 +210,7 @@ class Services_HyperEstraier_Error
      */
     public static function getErrors($purge = false, $level = false)
     {
-        return self::_getStack()->getErrors($purge, $level);
+        return self::getStack()->getErrors($purge, $level);
     }
 
     // }}}
