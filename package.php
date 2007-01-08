@@ -24,11 +24,11 @@ $apistability = 'stable';
 $notes = '* Relicensed under MIT license.
 * Changed channel from pear.php.net (pear) to __uri.
 * Catch up with Hyper Estraier 1.4.9.
-* Add support for the attribute distinction filter in Condition class.
-  (Services_HyperEstraier_Condition::setDistinct($name) / Services_HyperEstraier_Condition::getDistinct($name))
-* Add support for Zend_Http_Client and pecl_http as a http client in Utility class.
-  (Services_HyperEstraier_Utility::setHttpClient(Services_HyperEstraier_Utility::HTTP_CLIENT_{STREAM,PEAR,PECL,ZEND}))
-* Changed not to use PEAR::HTTP_Request by default.';
+* Added support for the attribute distinction filter in Condition class.
+  (Services_HyperEstraier_Condition::{set,get}Distinct($name))
+* Added class Services_HyperEstraier_Error which wraps PEAR_ErrorStack.
+* Added support for HTTP stream with cURL wrapper.
+* Removed support for PEAR::HTTP_Request.';
 
 // set parameters to the package
 $packagexml = new PEAR_PackageFileManager2;
@@ -74,8 +74,8 @@ $packagexml->addExtensionDep('required', 'sockets');
 $packagexml->addExtensionDep('required', 'SPL');
 $packagexml->addExtensionDep('optional', 'http');
 $packagexml->addPackageDepWithChannel('required', 'PEAR', 'pear.php.net');
-$packagexml->addPackageDepWithChannel('optional', 'HTTP_Request', 'pear.php.net');
-$packagexml->addPackageDepWithChannel('optional', 'pecl_http', 'pecl.php.net');
+//$packagexml->addPackageDepWithChannel('optional', 'HTTP_Request', 'pear.php.net');
+//$packagexml->addPackageDepWithChannel('optional', 'pecl_http', 'pecl.php.net');
 //$packagexml->addConflictingPackageDepWithChannel($packagename, 'pear.php.net');
 
 $packagexml->addGlobalReplacement('package-info', '@package_version@', 'version');
