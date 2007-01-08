@@ -1,10 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<package packagerversion="1.4.11" version="2.0" xmlns="http://pear.php.net/dtd/package-2.0" xmlns:tasks="http://pear.php.net/dtd/tasks-1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://pear.php.net/dtd/tasks-1.0
-    http://pear.php.net/dtd/tasks-1.0.xsd
-    http://pear.php.net/dtd/package-2.0
-    http://pear.php.net/dtd/package-2.0.xsd">
+<package packagerversion="1.4.11" version="2.0" xmlns="http://pear.php.net/dtd/package-2.0" xmlns:tasks="http://pear.php.net/dtd/tasks-1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://pear.php.net/dtd/tasks-1.0     http://pear.php.net/dtd/tasks-1.0.xsd     http://pear.php.net/dtd/package-2.0     http://pear.php.net/dtd/package-2.0.xsd">
  <name>Services_HyperEstraier</name>
- <channel>__uri</channel>
+ <channel>pear.php.net</channel>
  <summary>PHP interface of Hyper Estraier</summary>
  <description>A porting of estraierpure.rb which is a part of Hyper Estraier.
 
@@ -13,84 +10,49 @@ documents for some documents including specified words. If you run a web
 site, it is useful as your own search engine for pages in your site.
 Also, it is useful as search utilities of mail boxes and file servers.</description>
  <lead>
-  <name>Ryusuke SEKIYAMA</name>
+  <name>rsk</name>
   <user>rsk</user>
   <email>rsky0711@gmail.com</email>
   <active>yes</active>
  </lead>
- <date>2007-01-08</date>
- <time>18:52:50</time>
+ <date>2006-10-18</date>
+ <time>06:00:08</time>
  <version>
-  <release>0.6.0</release>
-  <api>1.4.9</api>
+  <release>0.5.0</release>
+  <api>1.4.5</api>
  </version>
  <stability>
   <release>beta</release>
   <api>stable</api>
  </stability>
- <license uri="http://www.opensource.org/licenses/mit-license.php">MIT License</license>
- <notes>* Relicensed under MIT license.
-* Changed channel from pear.php.net (pear) to __uri.
-* Catch up with Hyper Estraier 1.4.9.
-* Added support for the attribute distinction filter in Condition class.
-  (Services_HyperEstraier_Condition::{set,get}Distinct($name))
-* Added class Services_HyperEstraier_Error which wraps PEAR_ErrorStack.
-* Added support for HTTP stream with cURL wrapper.
-* Removed support for PEAR::HTTP_Request.</notes>
+ <license uri="http://www.opensource.org/licenses/bsd-license.php">BSD License</license>
+ <notes>* Catch up with Hyper Estraier 1.4.5.
+    * Add support for rough/union/intersection phrase in Condition class.
+        (constant Services_HyperEstraier_Condition::{ROUGH,UNION,ISECT})</notes>
  <contents>
   <dir baseinstalldir="Services" name="/">
-   <file baseinstalldir="Services" md5sum="43e62672dc936e4036dc3fe6b7ad90d7" name="examples/common.php" role="doc">
+   <file baseinstalldir="Services" md5sum="8fa518289740e96c3412718de4aa79b8" name="examples/register.php" role="doc">
     <tasks:replace from="@package_version@" to="version" type="package-info" />
    </file>
-   <file baseinstalldir="Services" md5sum="ba7c00358e925f5fa72593a229c756e6" name="examples/purge.php" role="doc">
+   <file baseinstalldir="Services" md5sum="a6ebf96ce8751f0aaec8100390171c45" name="examples/search.php" role="doc">
     <tasks:replace from="@package_version@" to="version" type="package-info" />
    </file>
-   <file baseinstalldir="Services" md5sum="5d6d0293dcd425a4ecf1b3a5a43ab0ca" name="examples/register.php" role="doc">
+   <file baseinstalldir="Services" md5sum="8707421a79e26430af379d0e8c24f9e2" name="HyperEstraier/Condition.php" role="php">
     <tasks:replace from="@package_version@" to="version" type="package-info" />
    </file>
-   <file baseinstalldir="Services" md5sum="25ca183bf721cf5a663d99d5a4200126" name="examples/search.php" role="doc">
+   <file baseinstalldir="Services" md5sum="acb0d99b2249f96d22679c8e3b94402a" name="HyperEstraier/Document.php" role="php">
     <tasks:replace from="@package_version@" to="version" type="package-info" />
    </file>
-   <file baseinstalldir="Services" md5sum="6ee9dbee1b34d6b00b327869b8091ea0" name="examples/aozora/hana.est" role="doc">
+   <file baseinstalldir="Services" md5sum="24846c5cf45922da540948ede4de4ce5" name="HyperEstraier/Node.php" role="php">
     <tasks:replace from="@package_version@" to="version" type="package-info" />
    </file>
-   <file baseinstalldir="Services" md5sum="449733049338cfe8a515315175cb9767" name="examples/aozora/hyohaku.est" role="doc">
+   <file baseinstalldir="Services" md5sum="ab207213b9f53956d3a57b98b205e85e" name="HyperEstraier/NodeResult.php" role="php">
     <tasks:replace from="@package_version@" to="version" type="package-info" />
    </file>
-   <file baseinstalldir="Services" md5sum="54732c0a1733cfa164d9ca0474767824" name="examples/aozora/ichiaku.est" role="doc">
+   <file baseinstalldir="Services" md5sum="66ad5747b2ecb2222e19282a818c25df" name="HyperEstraier/ResultDocument.php" role="php">
     <tasks:replace from="@package_version@" to="version" type="package-info" />
    </file>
-   <file baseinstalldir="Services" md5sum="500addf7f67cfc9c169c3ecfef95e9a6" name="examples/aozora/iki.est" role="doc">
-    <tasks:replace from="@package_version@" to="version" type="package-info" />
-   </file>
-   <file baseinstalldir="Services" md5sum="1de12ed892518c98e20f3ac1df9f55af" name="examples/aozora/rashomon.est" role="doc">
-    <tasks:replace from="@package_version@" to="version" type="package-info" />
-   </file>
-   <file baseinstalldir="Services" md5sum="c2fe7f3df36aa016a4355460ace25dfd" name="HyperEstraier/Condition.php" role="php">
-    <tasks:replace from="@package_version@" to="version" type="package-info" />
-   </file>
-   <file baseinstalldir="Services" md5sum="871c99e7069b03051572ce9564ccf5a6" name="HyperEstraier/Document.php" role="php">
-    <tasks:replace from="@package_version@" to="version" type="package-info" />
-   </file>
-   <file baseinstalldir="Services" md5sum="e67b9bcd11f320075e0433838c86c0e4" name="HyperEstraier/Error.php" role="php">
-    <tasks:replace from="@package_version@" to="version" type="package-info" />
-   </file>
-   <file baseinstalldir="Services" md5sum="f73df5687e0a966c3faad27694fce262" name="HyperEstraier/HttpResponse.php" role="php">
-    <tasks:replace from="@package_version@" to="version" type="package-info" />
-   </file>
-   <file baseinstalldir="Services" md5sum="d8179953559dd98a62e561c4079cc8a0" name="HyperEstraier/Node.php" role="php">
-    <tasks:replace from="@package_version@" to="version" type="package-info" />
-   </file>
-   <file baseinstalldir="Services" md5sum="1f6b9ac5ce5462c65bff4f447c21ca61" name="HyperEstraier/NodeResult.php" role="php">
-    <tasks:replace from="@package_version@" to="version" type="package-info" />
-   </file>
-   <file baseinstalldir="Services" md5sum="7bf5f6949bfe3d12632203d1e968ae2f" name="HyperEstraier/ResultDocument.php" role="php">
-    <tasks:replace from="@package_version@" to="version" type="package-info" />
-   </file>
-   <file baseinstalldir="Services" md5sum="e39be433b2520538963aa7e5adf13c76" name="HyperEstraier/Utility.php" role="php">
-    <tasks:replace from="@package_version@" to="version" type="package-info" />
-   </file>
-   <file baseinstalldir="Services" md5sum="587560d943635358b66a67dcbf817a8b" name="HyperEstraier.php" role="php">
+   <file baseinstalldir="Services" md5sum="9cde8bf54a8b2d905e6f93a7c0a84444" name="HyperEstraier.php" role="php">
     <tasks:replace from="@package_version@" to="version" type="package-info" />
    </file>
   </dir>
@@ -118,9 +80,10 @@ Also, it is useful as search utilities of mail boxes and file servers.</descript
    </extension>
   </required>
   <optional>
-   <extension>
-    <name>http</name>
-   </extension>
+   <package>
+    <name>HTTP_Request</name>
+    <channel>pear.php.net</channel>
+   </package>
   </optional>
  </dependencies>
  <phprelease />
@@ -272,26 +235,6 @@ in the constructor of Services_HyperEstraier_Document.</notes>
    <notes>* Catch up with Hyper Estraier 1.4.5.
     * Add support for rough/union/intersection phrase in Condition class.
         (constant Services_HyperEstraier_Condition::{ROUGH,UNION,ISECT})</notes>
-  </release>
-  <release>
-   <version>
-    <release>0.6.0</release>
-    <api>1.4.9</api>
-   </version>
-   <stability>
-    <release>beta</release>
-    <api>stable</api>
-   </stability>
-   <date>2007-01-08</date>
-   <license uri="http://www.opensource.org/licenses/mit-license.php">MIT License</license>
-   <notes>* Relicensed under MIT license.
-* Changed channel from pear.php.net (pear) to __uri.
-* Catch up with Hyper Estraier 1.4.9.
-* Added support for the attribute distinction filter in Condition class.
-  (Services_HyperEstraier_Condition::{set,get}Distinct($name))
-* Added class Services_HyperEstraier_Error which wraps PEAR_ErrorStack.
-* Added support for HTTP stream with cURL wrapper.
-* Removed support for PEAR::HTTP_Request.</notes>
   </release>
  </changelog>
 </package>
