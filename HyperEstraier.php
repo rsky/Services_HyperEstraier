@@ -83,6 +83,9 @@ class Services_HyperEstraier
 
     private static function _getNode($url)
     {
+        static $node = null;
+        static $checksum = '';
+
         if (!($purl = @parse_url($url)) ||
             !isset($purl['scheme']) || strcasecmp($purl['scheme'], 'http') != 0 ||
             !isset($purl['host']) || !isset($purl['path']) ||
@@ -90,16 +93,23 @@ class Services_HyperEstraier
         {
             throw new RuntimeException('Invalid URL given.');
         }
-        $node = new Services_HyperEstraier_Node;
-        $nurl = 'http://' . $purl['host'];
-        if (isset($purl['port'])) {
-            $nurl .= ':' . $purl['port'];
+
+        $newchecksum = md5($url);
+
+        if ($checksum != $newchecksum) {
+            $node = new Services_HyperEstraier_Node;
+            $nurl = 'http://' . $purl['host'];
+            if (isset($purl['port'])) {
+                $nurl .= ':' . $purl['port'];
+            }
+            $nurl .= $purl['path'];
+            $node->setUrl($nurl);
+            if (isset($purl['user']) && isset($purl['pass'])) {
+                $node->setAuth($purl['user'], $purl['pass']);
+            }
+            $checksum = $newchecksum;
         }
-        $nurl .= $purl['path'];
-        $node->setUrl($nurl);
-        if (isset($purl['user']) && isset($purl['pass'])) {
-            $node->setAuth($purl['user'], $purl['pass']);
-        }
+
         return $node;
     }
 
