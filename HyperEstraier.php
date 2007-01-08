@@ -43,12 +43,6 @@
  * @filesource
  */
 
-// {{{ load dependencies
-
-require_once 'PEAR.php';
-require_once 'PEAR/ErrorStack.php';
-
-// }}}
 // {{{ constants
 
 /**
@@ -66,10 +60,15 @@ if (!defined('SERVICES_HYPERESTRAIER_DEBUG')) {
 }
 
 // }}}
+// {{{ load dependencies
+
+require_once 'Services/HyperEstraier/Node.php';
+
+// }}}
 // {{{ class Services_HyperEstraier
 
 /**
- * Root class, mostly used for error handling.
+ * Class for simple registering and searching.
  *
  * @category    Web Services
  * @package     Services_HyperEstraier
@@ -80,427 +79,112 @@ if (!defined('SERVICES_HYPERESTRAIER_DEBUG')) {
  */
 class Services_HyperEstraier
 {
+    // {{{ private methods
+
+    private static function _getNode($url)
+    {
+        if (!($purl = @parse_url($url)) ||
+            !isset($purl['scheme']) || strcasecmp($purl['scheme'], 'http') != 0 ||
+            !isset($purl['host']) || !isset($purl['path']) ||
+            (isset($purl['user']) xor isset($purl['pass'])))
+        {
+            throw new RuntimeException('Invalid URL given.');
+        }
+        $node = new Services_HyperEstraier_Node;
+        $nurl = 'http://' . $purl['host'];
+        if (isset($purl['port'])) {
+            $nurl .= ':' . $purl['port'];
+        }
+        $nurl .= $purl['path'];
+        $node->setUrl($nurl);
+        if (isset($purl['user']) && isset($purl['pass'])) {
+            $node->setAuth($purl['user'], $purl['pass']);
+        }
+        return $node;
+    }
+
+    // }}}
     // {{{ public methods
 
-    /**
-     * Get an instance of PEAR_ErrorStack.
-     *
-     * @return  object  PEAR_ErrorStack
-     * @access  public
-     * @static
-     */
-    public static function getErrorStack()
+    public static function register($url, $text, array $attributes = null)
     {
-        return PEAR_ErrorStack::singleton('Services_HyperEstraier');
-    }
-
-    /**
-     * Push the error to the error stack.
-     *
-     * @param   object  $error  PEAR_Error  An error object
-     * @return  void
-     * @access  public
-     * @static
-     * @ignore
-     */
-    public static function pushError(PEAR_Error $error)
-    {
-        self::getErrorStack()->push($error->getCode(), 'error',
-            array('object' => $error), $error->getMessage(),
-            false, $error->getBacktrace());
-    }
-
-    // }}}
-}
-
-// }}}
-// {{{ class Services_HyperEstraier
-
-/**
- * Class for utility.
- *
- * @category    Web Services
- * @package     Services_HyperEstraier
- * @author      Ryusuke SEKIYAMA <rsky0711@gmail.com>
- * @version     Release: @package_version@
- * @since       Class available since Release 0.1.0
- * @static
- */
-class Services_HyperEstraier_Utility
-{
-    // {{{ public methods
-
-    /**
-     * Check types of arguments.
-     *
-     * @param   array   $types  Pairs of the argument and the expected type.
-     * @return  void
-     * @throws  Services_HyperEstraier_ArgumentError
-     * @access  public
-     * @static
-     * @ignore
-     */
-    public static function checkTypes()
-    {
-        $i = 0;
-        foreach (func_get_args() as $types) {
-            $i++;
-            $var = array_shift($types);
-            $type = gettype($var);
-            if (!in_array($type, $types)) {
-                $errmsg = sprintf('Argument#%d should be a kind of %s, %s given.',
-                    $i, implode(' or ', $types), $type);
-                throw new Services_HyperEstraier_ArgumentError($errmsg);
+        $node = self::_getNode($url);
+        $doc = new Services_HyperEstraier_Document;
+        if (!empty($attributes)) {
+            foreach ($attributes as $name => $value) {
+                $doc->addAttribute($name, $value);
             }
         }
-    }
-
-    /**
-     * Perform an interaction of a URL.
-     *
-     * @param   string  $url        A URL.
-     * @param   string  $pxhost     The host name of a proxy.
-     *                              If it is `null', it is not used. (optional)
-     * @param   int     $pxport     The port number of the proxy. (optional)
-     * @param   int     $outsec     Timeout in seconds.
-     *                              If it is negative, it is not used. (optional)
-     * @param   array   $reqheads   An array of extension headers.
-     *                              If it is `null', it is not used. (optional)
-     * @param   string  $reqbody    The pointer of the entitiy body of request.
-     *                              If it is `null', "GET" method is used. (optional)
-     * @return  object  Services_HyperEstraier_Response
-     *                  An object into which headers and the entity body
-     *                  of response are stored. On error, returns PEAR_Error.
-     * @access  public
-     * @static
-     * @ignore
-     */
-    public static function shuttleUrl($url, $pxhost = null, $pxport = null,
-            $outsec = -1, $reqheads = null, $reqbody = null)
-    {
-        if (is_null($reqheads)) {
-            $reqheads = array();
-        }
-
-        // set request parameters
-        $params = array('http' => array());
-        if (is_null($reqbody)) {
-            $params['http']['method'] = 'GET';
-        } else {
-            $params['http']['method'] = 'POST';
-            $params['http']['content'] = $reqbody;
-            $reqheads['content-length'] = strlen($reqbody);
-        }
-        if (!is_null($pxhost) && !is_null($pxport)) {
-            $params['http']['proxy'] = sprintf('tcp://%s:%d', $pxhost, $pxport);
-        }
-        $reqheads['user-agent'] = sprintf('Services_HyperEstraier/%s (PHP %s)',
-            SERVICES_HYPERESTRAIER_VERSION, PHP_VERSION);
-        $params['http']['header'] = '';
-        foreach ($reqheads as $key => $value) {
-            $params['http']['header'] .= sprintf("%s: %s\r\n", $key, $value);
-        }
-        $context = stream_context_create($params);
-
-        // open a stream and send the request
-        $fp = fopen($url, 'r', false, $context);
-        if (!$fp) {
-            $err = PEAR::raiseError(sprintf('Cannot connect to %s.', $url));
-            self::push_error($err);
-            return $err;
-        }
-        if ($outsec >= 0) {
-            stream_set_timeout($fp, $outsec);
-        }
-
-        // get the response body
-        $body = stream_get_contents($fp);
-
-        // parse the response headers
-        $meta_data = stream_get_meta_data($fp);
-        if (!empty($meta_data['timed_out'])) {
-            fclose($fp);
-            $err = PEAR::raiseError('Connection timed out.');
-            Services_HyperEstraier::pushError($err);
-            return $err;
-        }
-        if (strcasecmp($meta_data['wrapper_type'], 'cURL') == 0) {
-            $raw_headers = $meta_data['wrapper_data']['headers'];
-        } else {
-            $raw_headers = $meta_data['wrapper_data'];
-        }
-        $http_status = array_shift($raw_headers);
-        if (!preg_match('!^HTTP/(.+?) (\\d+) ?(.*)!', $http_status, $matches)) {
-            fclose($fp);
-            $err = PEAR::raiseError('Malformed response.');
-            Services_HyperEstraier::pushError($err);
-            return $err;
-        }
-        $code = (int)$matches[2];
-        $headers = array();
-        foreach ($raw_headers as $header) {
-            list($name, $value) = explode(':', $header, 2);
-            $headers[strtolower($name)] = ltrim($value);
-        }
-
-        // close the stream
-        fclose($fp);
-
-        return new Services_HyperEstraier_Response($code, $headers, $body);
-    }
-
-    /**
-     * Serialize a condition object into a query string.
-     *
-     * @param   object  $cond   Services_HyperEstraier_Condition
-     *                          which is a condition object.
-     * @param   int     $depth  Depth of meta search
-     * @param   int     $wwidth Whole width of a snippet
-     * @param   int     $hwidth Width of strings picked up from the beginning of the text
-     * @param   int     $awidth Width of strings picked up around each highlighted word
-     * @return  string  The serialized string.
-     * @access  public
-     * @static
-     * @ignore
-     */
-    public static function conditionToQuery(Services_HyperEstraier_Condition $cond,
-            $depth, $wwidth, $hwidth, $awidth)
-    {
-        $query = '';
-        if ($phrase = $cond->getPhrase()) {
-            $query .= '&phrase=' . urlencode($phrase);
-        }
-        if ($attrs = $cond->getAttributes()) {
-            $i = 0;
-            foreach ($attrs as $attr) {
-                $query .= '&attrs' . strval(++$i) . '=' . urlencode($attr);
+        foreach (preg_split('/(?:\\r\\n|\\r|\\n)+/', $text) as $line) {
+            if (strlen($line)) {
+                if (substr($line, 0, 1) == "\n") {
+                    $doc->addText($line);
+                } else {
+                    $doc->addHiddenText($line);
+                }
             }
         }
-        if (strlen($order = $cond->getOrder()) > 0) {
-            $query .= '&order=' . urlencode($order);
-        }
-        $query .= '&max=' . strval((($max = $cond->getMax()) >= 0) ? $max : 1 << 30);
-        if (($options = $cond->getOptions()) > 0) {
-            $query .= '&options=' . strval($options);
-        }
-        $query .= '&auxiliary=' . strval($cond->getAuxiliary());
-        if (strlen($distinct = $cond->getDistinct()) > 0) {
-            $query .= '&distinct=' . urlencode($distinct);
-        }
-        if ($depth > 0) {
-            $query .= '&depth=' . strval($depth);
-        }
-        $query .= '&wwidth=' . strval($wwidth);
-        $query .= '&hwidth=' . strval($hwidth);
-        $query .= '&awidth=' . strval($awidth);
-        $query .= '&skip=' . strval($cond->getSkip());
-        $query .= '&mask=' . strval($cond->getMask());
-        return substr($query, 1);
+        return $node->putDocument($doc);
     }
 
-    /**
-     * Sanitize an attribute name, an attribute value or a hidden sentence.
-     *
-     * @param   string  $str    A non-sanitized string.
-     * @return  string  The sanitized string.
-     * @access  public
-     * @static
-     * @ignore
-     */
-    public static function sanitize($str)
+    public static function update($url, $id, $text, $attributes, $append = false)
     {
-        return trim(preg_replace('/[ \\t\\r\\n\\x0B\\f]+/', ' ', $str), ' ');
+        $node = self::_getNode($url);
+        if (is_int($id)) {
+            $doc = $node->getDocument($id);
+        } else {
+            $doc = $node->getDocumentByUri($id);
+        }
+        if (is_null($doc)) {
+            return self::register($url, $text, $attributes);
+        }
+        if (!$append) {
+            if (!self::purge($url, $id)) {
+                return false;
+            }
+            return self::register($url, $text, $attributes);
+        }
+        if (!empty($attributes)) {
+            foreach ($attributes as $name => $value) {
+                $doc->addAttribute($name, $value);
+            }
+        }
+        foreach (preg_split('/(?:\\r\\n|\\r|\\n)+/', $text) as $line) {
+            if (strlen($line)) {
+                if (substr($line, 0, 1) == "\n") {
+                    $doc->addText($line);
+                } else {
+                    $doc->addHiddenText($line);
+                }
+            }
+        }
+        return $doc->editDocument($doc);
     }
 
-    /**
-     * Get an instance of PEAR_ErrorStack.
-     *
-     * @return  object  PEAR_ErrorStack
-     * @access  public
-     * @static
-     * @deprecated  Method deprecated in Release 0.6.0
-     */
-    public static function getErrorStack()
+    public static function purge($url, $id)
     {
-        return Services_HyperEstraier::getErrorStack();
+        $node = self::_getNode($url);
+        if (is_int($id)) {
+            return $node->outDocument($id);
+        } else {
+            return $node->outDocumentByUri($id);
+        }
     }
 
-    /**
-     * Push the error to the error stack.
-     *
-     * @param   object  $error  PEAR_Error  An error object
-     * @return  void
-     * @access  public
-     * @static
-     * @deprecated  Method deprecated in Release 0.6.0
-     * @ignore
-     */
-    public static function pushError(PEAR_Error $error)
+    public static function search($url, $phrase, $limit = -1, $offset = 0)
     {
-        return Services_HyperEstraier::pushError($error);
+        $node = self::_getNode($url);
+        $cond = new Services_HyperEstraier_Condition;
+        $cond->setPhrase($phrase);
+        $cond->setMax($limit);
+        $cond->setSkip($offset);
+        return $node->search($cond, 0);
     }
 
     // }}}
 }
 
 // }}}
-// {{{ class Services_HyperEstraier_Response
-
-/**
- * Class for HTTP response.
- *
- * @category    Web Services
- * @package     Services_HyperEstraier
- * @author      Ryusuke SEKIYAMA <rsky0711@gmail.com>
- * @version     Release: @package_version@
- * @since       Class available since Release 0.2.0
- * @ignore
- */
-class Services_HyperEstraier_Response
-{
-    // {{{ private properties
-
-    /**
-     * The status code
-     *
-     * @var int
-     * @access  private
-     */
-    private $_code;
-
-    /**
-     * Headers of response
-     *
-     * @var array
-     * @access  private
-     */
-    private $_headers;
-
-    /**
-     * The entity body of response
-     *
-     * @var string
-     * @access  private
-     */
-    private $_body;
-
-
-    // }}}
-    // {{{ constructor
-
-    /**
-     * Create a response object.
-     *
-     * @param   int     $code       The status code.
-     * @param   array   $headers    The hash of the headers.
-     * @param   string  $body       The entity body of response,
-     * @access  public
-     */
-    public function __construct($code, array $headers, $body)
-    {
-        $this->_code = $code;
-        $this->_headers = $headers;
-        $this->_body = $body;
-    }
-
-    // }}}
-    // {{{ getter methods
-
-    /**
-     * Determine success.
-     *
-     * @return  bool    True if the status code is 200, else false.
-     * @access  public
-     */
-    public function isSuccess()
-    {
-        return ($this->_code == 200);
-    }
-
-    /**
-     * Determine error.
-     *
-     * @return  bool    True if the status code is not 200, else false.
-     * @access  public
-     */
-    public function isError()
-    {
-        return ($this->_code != 200);
-    }
-
-    /**
-     * Get the status code.
-     *
-     * @return  int     The status code of the response.
-     * @access  public
-     */
-    public function getResponseCode()
-    {
-        return $this->_code;
-    }
-
-    /**
-     * Get the value of a header.
-     *
-     * @param   string  $name  The name of a header.
-     * @return  string  The value of the header.
-     *                  If it does not exist, returns `false'.
-     * @access  public
-     */
-    public function getResponseHeader($name)
-    {
-        $name = strtolower($name);
-        if (isset($this->_headers[$name])) {
-            return $this->_headers[$name];
-        }
-        return false;
-    }
-
-    /**
-     * Get a hash of headers.
-     *
-     * @return  array   All response headers.
-     * @access  public
-     */
-    public function getResponseHeaders()
-    {
-        return $this->_headers;
-    }
-
-    /**
-     * Get the entity body of response,
-     *
-     * @return  string  The entity body of response.
-     * @access  public
-     */
-    public function getResponseBody()
-    {
-        return $this->_body;
-    }
-
-    // }}}
-}
-
-// }}}
-// {{{ class Services_HyperEstraier_ArgumentError
-
-/**
- * Exception for the argument error.
- *
- * @category    Web Services
- * @package     Services_HyperEstraier
- * @author      Ryusuke SEKIYAMA <rsky0711@gmail.com>
- * @version     Release: @package_version@
- * @since       Class available since Release 0.1.0
- * @ignore
- */
-class Services_HyperEstraier_ArgumentError extends InvalidArgumentException
-{
-    // Just a rename of InvalidArgumentException class.
-}
-
-// }}}
-
 /*
  * Local variables:
  * mode: php

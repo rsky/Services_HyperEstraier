@@ -45,7 +45,7 @@
 
 // {{{ load dependencies
 
-require_once 'Services/HyperEstraier.php';
+require_once 'Services/HyperEstraier/Utility.php';
 
 // }}}
 // {{{ class Services_HyperEstraier_Document

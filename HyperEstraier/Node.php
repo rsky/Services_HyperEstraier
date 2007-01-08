@@ -45,7 +45,7 @@
 
 // {{{ load dependencies
 
-require_once 'Services/HyperEstraier.php';
+require_once 'Services/HyperEstraier/Utility.php';
 require_once 'Services/HyperEstraier/Condition.php';
 require_once 'Services/HyperEstraier/Document.php';
 require_once 'Services/HyperEstraier/NodeResult.php';
@@ -533,7 +533,7 @@ class Services_HyperEstraier_Node
         $reqbody = $doc->dumpDraft();
         $res = Services_HyperEstraier_Utility::shuttleUrl($turl,
             $this->_pxhost, $this->_pxport, $this->_timeout, $reqheads, $reqbody);
-        if (PEAR::isError($res)) {
+        if (!$res) {
             return false;
         }
         $this->_status = $res->getResponseCode();
@@ -564,7 +564,7 @@ class Services_HyperEstraier_Node
         $reqbody = 'id=' . $id;
         $res = Services_HyperEstraier_Utility::shuttleUrl($turl,
             $this->_pxhost, $this->_pxport, $this->_timeout, $reqheads, $reqbody);
-        if (PEAR::isError($res)) {
+        if (!$res) {
             return false;
         }
         $this->_status = $res->getResponseCode();
@@ -595,7 +595,7 @@ class Services_HyperEstraier_Node
         $reqbody = 'uri=' . urlencode($uri);
         $res = Services_HyperEstraier_Utility::shuttleUrl($turl,
             $this->_pxhost, $this->_pxport, $this->_timeout, $reqheads, $reqbody);
-        if (PEAR::isError($res)) {
+        if (!$res) {
             return false;
         }
         $this->_status = $res->getResponseCode();
@@ -624,7 +624,7 @@ class Services_HyperEstraier_Node
         $reqbody = $doc->dumpDraft();
         $res = Services_HyperEstraier_Utility::shuttleUrl($turl,
             $this->_pxhost, $this->_pxport, $this->_timeout, $reqheads, $reqbody);
-        if (PEAR::isError($res)) {
+        if (!$res) {
             return false;
         }
         $this->_status = $res->getResponseCode();
@@ -657,7 +657,7 @@ class Services_HyperEstraier_Node
         $reqbody = 'id=' . $id;
         $res = Services_HyperEstraier_Utility::shuttleUrl($turl,
             $this->_pxhost, $this->_pxport, $this->_timeout, $reqheads, $reqbody);
-        if (PEAR::isError($res)) {
+        if (!$res) {
             return null;
         }
         $this->_status = $res->getResponseCode();
@@ -693,7 +693,7 @@ class Services_HyperEstraier_Node
         $reqbody = 'uri=' . urlencode($uri);
         $res = Services_HyperEstraier_Utility::shuttleUrl($turl,
             $this->_pxhost, $this->_pxport, $this->_timeout, $reqheads, $reqbody);
-        if (PEAR::isError($res)) {
+        if (!$res) {
             return null;
         }
         $this->_status = $res->getResponseCode();
@@ -728,7 +728,7 @@ class Services_HyperEstraier_Node
         $reqbody = 'id=' . $id . '&attr=' . urlencode($name);
         $res = Services_HyperEstraier_Utility::shuttleUrl($turl,
             $this->_pxhost, $this->_pxport, $this->_timeout, $reqheads, $reqbody);
-        if (PEAR::isError($res)) {
+        if (!$res) {
             return null;
         }
         $this->_status = $res->getResponseCode();
@@ -763,7 +763,7 @@ class Services_HyperEstraier_Node
         $reqbody = 'uri=' . urlencode($uri) . '&attr=' . urlencode($name);
         $res = Services_HyperEstraier_Utility::shuttleUrl($turl,
             $this->_pxhost, $this->_pxport, $this->_timeout, $reqheads, $reqbody);
-        if (PEAR::isError($res)) {
+        if (!$res) {
             return null;
         }
         $this->_status = $res->getResponseCode();
@@ -798,7 +798,7 @@ class Services_HyperEstraier_Node
         $reqbody = 'id=' . $id;
         $res = Services_HyperEstraier_Utility::shuttleUrl($turl,
             $this->_pxhost, $this->_pxport, $this->_timeout, $reqheads, $reqbody);
-        if (PEAR::isError($res)) {
+        if (!$res) {
             return null;
         }
         $this->_status = $res->getResponseCode();
@@ -841,7 +841,7 @@ class Services_HyperEstraier_Node
         $reqbody = 'uri=' . urlencode($uri);
         $res = Services_HyperEstraier_Utility::shuttleUrl($turl,
             $this->_pxhost, $this->_pxport, $this->_timeout, $reqheads, $reqbody);
-        if (PEAR::isError($res)) {
+        if (!$res) {
             return null;
         }
         $this->_status = $res->getResponseCode();
@@ -890,7 +890,7 @@ class Services_HyperEstraier_Node
         $reqbody = 'name=' . urlencode($name) . '&mode=' . $mode;
         $res = Services_HyperEstraier_Utility::shuttleUrl($turl,
             $this->_pxhost, $this->_pxport, $this->_timeout, $reqheads, $reqbody);
-        if (PEAR::isError($res)) {
+        if (!$res) {
             return false;
         }
         $this->_status = $res->getResponseCode();
@@ -928,7 +928,7 @@ class Services_HyperEstraier_Node
         }
         $res = Services_HyperEstraier_Utility::shuttleUrl($turl,
             $this->_pxhost, $this->_pxport, $this->_timeout, $reqheads, $reqbody);
-        if (PEAR::isError($res)) {
+        if (!$res) {
             return false;
         }
         $this->_status = $res->getResponseCode();
@@ -957,7 +957,7 @@ class Services_HyperEstraier_Node
         }
         $res = Services_HyperEstraier_Utility::shuttleUrl($turl,
             $this->_pxhost, $this->_pxport, $this->_timeout, $reqheads);
-        if (PEAR::isError($res)) {
+        if (!$res) {
             return false;
         }
         $this->_status = $res->getResponseCode();
@@ -983,7 +983,7 @@ class Services_HyperEstraier_Node
         }
         $res = Services_HyperEstraier_Utility::shuttleUrl($turl,
             $this->_pxhost, $this->_pxport, $this->_timeout, $reqheads);
-        if (PEAR::isError($res)) {
+        if (!$res) {
             return false;
         }
         $this->_status = $res->getResponseCode();
@@ -1021,7 +1021,7 @@ class Services_HyperEstraier_Node
         }
         $res = Services_HyperEstraier_Utility::shuttleUrl($turl,
             $this->_pxhost, $this->_pxport, $this->_timeout, $reqheads, $reqbody);
-        if (PEAR::isError($res)) {
+        if (!$res) {
             return -1;
         }
         $this->_status = $res->getResponseCode();
@@ -1051,7 +1051,7 @@ class Services_HyperEstraier_Node
         }
         $res = Services_HyperEstraier_Utility::shuttleUrl($turl,
             $this->_pxhost, $this->_pxport, $this->_timeout, $reqheads, null, $res);
-        if (PEAR::isError($res)) {
+        if (!$res) {
             return -1.0;
         }
         $this->_status = $res->getResponseCode();
@@ -1091,7 +1091,7 @@ class Services_HyperEstraier_Node
         );
         $res = Services_HyperEstraier_Utility::shuttleUrl($turl,
             $this->_pxhost, $this->_pxport, $this->_timeout, $reqheads, $reqbody);
-        if (PEAR::isError($res)) {
+        if (!$res) {
             return null;
         }
         $this->_status = $res->getResponseCode();
@@ -1199,7 +1199,7 @@ class Services_HyperEstraier_Node
         }
         $res = Services_HyperEstraier_Utility::shuttleUrl($turl,
             $this->_pxhost, $this->_pxport, $this->_timeout, $reqheads, null, $res);
-        if (PEAR::isError($res)) {
+        if (!$res) {
             return;
         }
         $this->_status = $res->getResponseCode();
