@@ -106,6 +106,7 @@ class Services_HyperEstraier_Utility
      * Perform an interaction of a URL.
      *
      * @param   string  $url        A URL.
+     * @param   string  $auth       Authentication username and password. (optional)
      * @param   string  $pxhost     The host name of a proxy.
      *                              If it is `null', it is not used. (optional)
      * @param   int     $pxport     The port number of the proxy. (optional)
@@ -118,13 +119,19 @@ class Services_HyperEstraier_Utility
      * @return  object  Services_HyperEstraier_HttpResponse
      *                  An object into which headers and the entity body
      *                  of response are stored. On error, returns false.
+     * @throws  InvalidArgumentException, RuntimeException
      * @access  public
      * @static
      * @ignore
      */
-    public static function shuttleUrl($url, $pxhost = null, $pxport = null,
+    public static function shuttleUrl($url, $auth = null,
+            $pxhost = null, $pxport = null,
             $outsec = -1, $reqheads = null, $reqbody = null)
     {
+        if (!preg_match('@^(https?://)(\\w.+)@', $url, $matches)) {
+            throw new InvalidArgumentException('Invalid URL given.');
+        }
+
         if (is_null($reqheads)) {
             $reqheads = array();
         }
@@ -144,6 +151,9 @@ class Services_HyperEstraier_Utility
         $reqheads['user-agent'] = sprintf('Services_HyperEstraier/%s (PHP %s)',
                                           SERVICES_HYPERESTRAIER_VERSION,
                                           PHP_VERSION);
+        if ($auth) {
+            $url = $matches[1] . $auth. '@' . $matches[2];
+        }
         $params['http']['header'] = '';
         foreach ($reqheads as $key => $value) {
             $params['http']['header'] .= sprintf("%s: %s\r\n", $key, $value);
@@ -151,13 +161,10 @@ class Services_HyperEstraier_Utility
         $context = stream_context_create($params);
 
         try {
-
             // open a stream and send the request
+            set_error_handler('services_hyperestraier_utility_open_url_error_handler');
             $fp = fopen($url, 'r', false, $context);
-            if (!$fp) {
-                throw new RuntimeException(sprintf('Cannot connect to %s.', $url),
-                                Services_HyperEstraier_Error::CONNECTION_FAILED);
-            }
+            restore_error_handler();
             if ($outsec >= 0) {
                 stream_set_timeout($fp, $outsec);
             }
@@ -197,8 +204,13 @@ class Services_HyperEstraier_Utility
 
         } catch (RuntimeException $e) {
 
+            restore_error_handler();
+            if ($e->getCode() == Services_HyperEstraier_Error::HTTP_NOT_2XX) {
+                return new Services_HyperEstraier_HttpResponse(
+                                (int)$e->getMessage(), array(), '');
+            }
             Services_HyperEstraier_Error::push($e->getCode(), $e->getMessage(),
-                                'exception', $params, array('exception' => $e));
+                        'exception', $params, array('exception' => $e));
             return false;
         }
     }
@@ -270,6 +282,19 @@ class Services_HyperEstraier_Utility
 }
 
 // }}}
+
+function services_hyperestraier_utility_open_url_error_handler($errno, $errstr,
+        $errfile = '', $errline = 0, $errcontext = null)
+{
+    if (preg_match('@HTTP/1\\.[01] ([1-5]\\d\\d)@', $errstr, $matches)) {
+        $code = Services_HyperEstraier_Error::HTTP_NOT_2XX;
+        $message = $matches[1];
+    } else {
+        $code = Services_HyperEstraier_Error::CONNECTION_FAILED;
+        $message = $errstr;
+    }
+    throw new RuntimeException($message, $code);
+}
 
 /*
  * Local variables:

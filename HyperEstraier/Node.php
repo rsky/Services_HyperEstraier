@@ -527,11 +527,8 @@ class Services_HyperEstraier_Node
         }
         $turl = $this->_url . '/put_doc';
         $reqheads = array('content-type' => 'text/x-estraier-draft');
-        if ($this->_auth) {
-            $reqheads['authorization'] = 'Basic ' . base64_encode($this->_auth);
-        }
         $reqbody = $doc->dumpDraft();
-        $res = Services_HyperEstraier_Utility::shuttleUrl($turl,
+        $res = Services_HyperEstraier_Utility::shuttleUrl($turl, $this->_auth,
             $this->_pxhost, $this->_pxport, $this->_timeout, $reqheads, $reqbody);
         if (!$res) {
             return false;
@@ -558,11 +555,8 @@ class Services_HyperEstraier_Node
         }
         $turl = $this->_url . '/out_doc';
         $reqheads = array('content-type' => 'application/x-www-form-urlencoded');
-        if ($this->_auth) {
-            $reqheads['authorization'] = 'Basic ' . base64_encode($this->_auth);
-        }
         $reqbody = 'id=' . $id;
-        $res = Services_HyperEstraier_Utility::shuttleUrl($turl,
+        $res = Services_HyperEstraier_Utility::shuttleUrl($turl, $this->_auth,
             $this->_pxhost, $this->_pxport, $this->_timeout, $reqheads, $reqbody);
         if (!$res) {
             return false;
@@ -589,11 +583,8 @@ class Services_HyperEstraier_Node
         }
         $turl = $this->_url . '/out_doc';
         $reqheads = array('content-type' => 'application/x-www-form-urlencoded');
-        if ($this->_auth) {
-            $reqheads['authorization'] = 'Basic ' . base64_encode($this->_auth);
-        }
         $reqbody = 'uri=' . urlencode($uri);
-        $res = Services_HyperEstraier_Utility::shuttleUrl($turl,
+        $res = Services_HyperEstraier_Utility::shuttleUrl($turl, $this->_auth,
             $this->_pxhost, $this->_pxport, $this->_timeout, $reqheads, $reqbody);
         if (!$res) {
             return false;
@@ -618,11 +609,8 @@ class Services_HyperEstraier_Node
         }
         $turl = $this->_url . '/edit_doc';
         $reqheads = array('content-type' => 'text/x-estraier-draft');
-        if ($this->_auth) {
-            $reqheads['authorization'] = 'Basic ' . base64_encode($this->_auth);
-        }
         $reqbody = $doc->dumpDraft();
-        $res = Services_HyperEstraier_Utility::shuttleUrl($turl,
+        $res = Services_HyperEstraier_Utility::shuttleUrl($turl, $this->_auth,
             $this->_pxhost, $this->_pxport, $this->_timeout, $reqheads, $reqbody);
         if (!$res) {
             return false;
@@ -651,11 +639,8 @@ class Services_HyperEstraier_Node
         }
         $turl = $this->_url . '/get_doc';
         $reqheads = array('content-type' => 'application/x-www-form-urlencoded');
-        if ($this->_auth) {
-            $reqheads['authorization'] = 'Basic ' . base64_encode($this->_auth);
-        }
         $reqbody = 'id=' . $id;
-        $res = Services_HyperEstraier_Utility::shuttleUrl($turl,
+        $res = Services_HyperEstraier_Utility::shuttleUrl($turl, $this->_auth,
             $this->_pxhost, $this->_pxport, $this->_timeout, $reqheads, $reqbody);
         if (!$res) {
             return null;
@@ -687,11 +672,8 @@ class Services_HyperEstraier_Node
         }
         $turl = $this->_url . '/get_doc';
         $reqheads = array('content-type' => 'application/x-www-form-urlencoded');
-        if ($this->_auth) {
-            $reqheads['authorization'] = 'Basic ' . base64_encode($this->_auth);
-        }
         $reqbody = 'uri=' . urlencode($uri);
-        $res = Services_HyperEstraier_Utility::shuttleUrl($turl,
+        $res = Services_HyperEstraier_Utility::shuttleUrl($turl, $this->_auth,
             $this->_pxhost, $this->_pxport, $this->_timeout, $reqheads, $reqbody);
         if (!$res) {
             return null;
@@ -722,11 +704,8 @@ class Services_HyperEstraier_Node
         }
         $turl = $this->_url . '/get_doc_attr';
         $reqheads = array('content-type' => 'application/x-www-form-urlencoded');
-        if ($this->_auth) {
-            $reqheads['authorization'] = 'Basic ' . base64_encode($this->_auth);
-        }
         $reqbody = 'id=' . $id . '&attr=' . urlencode($name);
-        $res = Services_HyperEstraier_Utility::shuttleUrl($turl,
+        $res = Services_HyperEstraier_Utility::shuttleUrl($turl, $this->_auth,
             $this->_pxhost, $this->_pxport, $this->_timeout, $reqheads, $reqbody);
         if (!$res) {
             return null;
@@ -757,11 +736,8 @@ class Services_HyperEstraier_Node
         }
         $turl = $this->_url . '/get_doc_attr';
         $reqheads = array('content-type' => 'application/x-www-form-urlencoded');
-        if ($this->_auth) {
-            $reqheads['authorization'] = 'Basic ' . base64_encode($this->_auth);
-        }
         $reqbody = 'uri=' . urlencode($uri) . '&attr=' . urlencode($name);
-        $res = Services_HyperEstraier_Utility::shuttleUrl($turl,
+        $res = Services_HyperEstraier_Utility::shuttleUrl($turl, $this->_auth,
             $this->_pxhost, $this->_pxport, $this->_timeout, $reqheads, $reqbody);
         if (!$res) {
             return null;
@@ -792,11 +768,8 @@ class Services_HyperEstraier_Node
         }
         $turl = $this->_url . '/etch_doc';
         $reqheads = array('content-type' => 'application/x-www-form-urlencoded');
-        if ($this->_auth) {
-            $reqheads['authorization'] = 'Basic ' . base64_encode($this->_auth);
-        }
         $reqbody = 'id=' . $id;
-        $res = Services_HyperEstraier_Utility::shuttleUrl($turl,
+        $res = Services_HyperEstraier_Utility::shuttleUrl($turl, $this->_auth,
             $this->_pxhost, $this->_pxport, $this->_timeout, $reqheads, $reqbody);
         if (!$res) {
             return null;
@@ -835,11 +808,8 @@ class Services_HyperEstraier_Node
         }
         $turl = $this->_url . '/etch_doc';
         $reqheads = array('content-type' => 'application/x-www-form-urlencoded');
-        if ($this->_auth) {
-            $reqheads['authorization'] = 'Basic ' . base64_encode($this->_auth);
-        }
         $reqbody = 'uri=' . urlencode($uri);
-        $res = Services_HyperEstraier_Utility::shuttleUrl($turl,
+        $res = Services_HyperEstraier_Utility::shuttleUrl($turl, $this->_auth,
             $this->_pxhost, $this->_pxport, $this->_timeout, $reqheads, $reqbody);
         if (!$res) {
             return null;
@@ -884,11 +854,8 @@ class Services_HyperEstraier_Node
         }
         $turl = $this->_url . '/_set_user';
         $reqheads = array('content-type' => 'application/x-www-form-urlencoded');
-        if ($this->_auth) {
-            $reqheads['authorization'] = 'Basic ' . base64_encode($this->_auth);
-        }
         $reqbody = 'name=' . urlencode($name) . '&mode=' . $mode;
-        $res = Services_HyperEstraier_Utility::shuttleUrl($turl,
+        $res = Services_HyperEstraier_Utility::shuttleUrl($turl, $this->_auth,
             $this->_pxhost, $this->_pxport, $this->_timeout, $reqheads, $reqbody);
         if (!$res) {
             return false;
@@ -919,14 +886,11 @@ class Services_HyperEstraier_Node
         }
         $turl = $this->_url . '/_set_link';
         $reqheads = array('content-type' => 'application/x-www-form-urlencoded');
-        if ($this->_auth) {
-            $reqheads['authorization'] = 'Basic ' . base64_encode($this->_auth);
-        }
         $reqbody = 'url=' . urlencode($url) . '&label=' . $label;
         if ($credit >= 0) {
             $reqbody .= '&credit=' . $credit;
         }
-        $res = Services_HyperEstraier_Utility::shuttleUrl($turl,
+        $res = Services_HyperEstraier_Utility::shuttleUrl($turl, $this->_auth,
             $this->_pxhost, $this->_pxport, $this->_timeout, $reqheads, $reqbody);
         if (!$res) {
             return false;
@@ -952,10 +916,7 @@ class Services_HyperEstraier_Node
         }
         $turl = $this->_url . '/sync';
         $reqheads = array('content-type' => 'application/x-www-form-urlencoded');
-        if ($this->_auth) {
-            $reqheads['authorization'] = 'Basic ' . base64_encode($this->_auth);
-        }
-        $res = Services_HyperEstraier_Utility::shuttleUrl($turl,
+        $res = Services_HyperEstraier_Utility::shuttleUrl($turl, $this->_auth,
             $this->_pxhost, $this->_pxport, $this->_timeout, $reqheads);
         if (!$res) {
             return false;
@@ -978,10 +939,7 @@ class Services_HyperEstraier_Node
         }
         $turl = $this->_url . '/optimize';
         $reqheads = array('content-type' => 'application/x-www-form-urlencoded');
-        if ($this->_auth) {
-            $reqheads['authorization'] = 'Basic ' . base64_encode($this->_auth);
-        }
-        $res = Services_HyperEstraier_Utility::shuttleUrl($turl,
+        $res = Services_HyperEstraier_Utility::shuttleUrl($turl, $this->_auth,
             $this->_pxhost, $this->_pxport, $this->_timeout, $reqheads);
         if (!$res) {
             return false;
@@ -1012,14 +970,11 @@ class Services_HyperEstraier_Node
         }
         $turl = $this->_url . '/uri_to_id';
         $reqheads = array('content-type' => 'application/x-www-form-urlencoded');
-        if ($this->_auth) {
-            $reqheads['authorization'] = 'Basic ' . base64_encode($this->_auth);
-        }
         $reqbody = 'url=' . urlencode($url) . '&label=' . $label;
         if ($credit >= 0) {
             $reqbody .= '&credit=' . $credit;
         }
-        $res = Services_HyperEstraier_Utility::shuttleUrl($turl,
+        $res = Services_HyperEstraier_Utility::shuttleUrl($turl, $this->_auth,
             $this->_pxhost, $this->_pxport, $this->_timeout, $reqheads, $reqbody);
         if (!$res) {
             return -1;
@@ -1046,10 +1001,7 @@ class Services_HyperEstraier_Node
         }
         $turl = $this->_url . '/cacheusage';
         $reqheads = array();
-        if ($this->_auth) {
-            $reqheads['authorization'] = 'Basic ' . base64_encode($this->_auth);
-        }
-        $res = Services_HyperEstraier_Utility::shuttleUrl($turl,
+        $res = Services_HyperEstraier_Utility::shuttleUrl($turl, $this->_auth,
             $this->_pxhost, $this->_pxport, $this->_timeout, $reqheads, null, $res);
         if (!$res) {
             return -1.0;
@@ -1083,13 +1035,10 @@ class Services_HyperEstraier_Node
         }
         $turl = $this->_url . '/search';
         $reqheads = array('content-type' => 'application/x-www-form-urlencoded');
-        if ($this->_auth) {
-            $reqheads['authorization'] = 'Basic ' . base64_encode($this->_auth);
-        }
         $reqbody = Services_HyperEstraier_Utility::conditionToQuery(
             $cond, $depth, $this->_wwidth, $this->_hwidth, $this->_awidth
         );
-        $res = Services_HyperEstraier_Utility::shuttleUrl($turl,
+        $res = Services_HyperEstraier_Utility::shuttleUrl($turl, $this->_auth,
             $this->_pxhost, $this->_pxport, $this->_timeout, $reqheads, $reqbody);
         if (!$res) {
             return null;
@@ -1194,10 +1143,7 @@ class Services_HyperEstraier_Node
         }
         $turl = $this->_url . '/inform';
         $reqheads = array();
-        if ($this->_auth) {
-            $reqheads['authorization'] = 'Basic ' . base64_encode($this->_auth);
-        }
-        $res = Services_HyperEstraier_Utility::shuttleUrl($turl,
+        $res = Services_HyperEstraier_Utility::shuttleUrl($turl, $this->_auth,
             $this->_pxhost, $this->_pxport, $this->_timeout, $reqheads, null, $res);
         if (!$res) {
             return;
