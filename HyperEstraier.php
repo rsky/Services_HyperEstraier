@@ -153,13 +153,11 @@ class Services_HyperEstraier
     {
         $node = self::_getNode($url);
         $doc = new Services_HyperEstraier_Document;
-        foreach (preg_split('/(?:\\r\\n|\\r|\\n)+/', $text) as $line) {
-            if (strlen($line)) {
-                if (substr($line, 0, 1) == "\n") {
-                    $doc->addText($line);
-                } else {
-                    $doc->addHiddenText($line);
-                }
+        foreach (preg_split('/(?:\\r\\n|\\r|\\n)+/', trim($text)) as $line) {
+            if (substr($line, 0, 1) == "\t") {
+                $doc->addHiddenText($line);
+            } else {
+                $doc->addText($line);
             }
         }
         foreach ($attributes as $name => $value) {
@@ -204,13 +202,11 @@ class Services_HyperEstraier
             return false;
         }
         if (strlen($text)) {
-            foreach (preg_split('/(?:\\r\\n|\\r|\\n)+/', $text) as $line) {
-                if (strlen($line)) {
-                    if (substr($line, 0, 1) == "\n") {
-                        $doc->addText($line);
-                    } else {
-                        $doc->addHiddenText($line);
-                    }
+            foreach (preg_split('/(?:\\r\\n|\\r|\\n)+/', trim($text)) as $line) {
+                if (substr($line, 0, 1) == "\t") {
+                    $doc->addHiddenText($line);
+                } else {
+                    $doc->addText($line);
                 }
             }
         }
