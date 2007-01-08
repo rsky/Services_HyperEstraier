@@ -22,13 +22,13 @@ $apistability = 'stable';
 
 //$notes = '* Changed channel __uri to pear.paradogs.jp (pdx).';
 $notes = '* Relicensed under MIT license.
-* Changed channel from pear.php.net (pear) to __uri.
+* Change channel from pear.php.net (pear) to __uri.
 * Catch up with Hyper Estraier 1.4.9.
-* Added support for the attribute distinction filter in Condition class.
+* Add support for the attribute distinction filter in Condition class.
   (Services_HyperEstraier_Condition::{set,get}Distinct($name))
-* Added class Services_HyperEstraier_Error which wraps PEAR_ErrorStack.
-* Added support for HTTP stream with cURL wrapper.
-* Removed support for PEAR::HTTP_Request.';
+* Add class Services_HyperEstraier_Error which wraps PEAR_ErrorStack.
+* Add support for HTTP stream with cURL wrapper.
+* Remove support for PEAR::HTTP_Request.';
 
 // set parameters to the package
 $packagexml = new PEAR_PackageFileManager2;
@@ -41,7 +41,7 @@ $packagexml->setOptions(array(
         '.DS_Store',
         '.svn',
         'package.php',
-        'package.xml',
+        'package.xml*',
         'test.sh'),
     'dir_roles' => array(
         'examples'  => 'doc',
