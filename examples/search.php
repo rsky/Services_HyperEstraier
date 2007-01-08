@@ -31,7 +31,7 @@ if ($nres) {
     }
 } else {
     fprintf(STDERR, "error: %d\n", $node->status);
-    if (Services_HyperEstraier::getErrorStack()->hasErrors()) {
-        fputs(STDERR, print_r(Services_HyperEstraier::getErrorStack()->getErrors(), true));
+    if (Services_HyperEstraier_Error::hasErrors()) {
+        fputs(STDERR, print_r(Services_HyperEstraier_Error::getErrors(), true));
     }
 }

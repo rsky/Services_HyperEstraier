@@ -9,8 +9,8 @@ $node->setAuth($user, $pass);
 // remove the document specified by URI.
 if (!$node->outDocumentByUri('http://estraier.example.com/example.txt')) {
     fprintf(STDERR, "error: %d\n", $node->status);
-    if (Services_HyperEstraier_Utility::getErrorStack()->hasErrors()) {
-        fputs(STDERR, print_r(Services_HyperEstraier_Utility::getErrorStack()->getErrors(), true));
+    if (Services_HyperEstraier_Error::hasErrors()) {
+        fputs(STDERR, print_r(Services_HyperEstraier_Error::getErrors(), true));
     }
 } else {
     fputs(STDOUT, "success.\n");
