@@ -162,7 +162,7 @@ class Services_HyperEstraier_Utility
 
         try {
             // open a stream and send the request
-            set_error_handler('services_hyperestraier_utility_open_url_error_handler');
+            set_error_handler('services_hyperestraier_utility_open_url_error_handler', E_WARNING);
             $fp = fopen($url, 'r', false, $context);
             restore_error_handler();
             if ($outsec >= 0) {
@@ -282,7 +282,23 @@ class Services_HyperEstraier_Utility
 }
 
 // }}}
+// {{{ function services_hyperestraier_utility_open_url_error_handler
 
+/**
+ * Error handler for url fopen().
+ *
+ * @param   int     $errno      The level of the error raised.
+ * @param   string  $errstr     The error message.
+ * @param   string  $errfile    The filename that the error was raised in.
+ * @param   int     $errline    The line number the error was raised at.
+ * @param   array   $errcontext An array that points to the active symbol
+ *                              table at the point the error occurred.
+ *                              Must not modify error context.
+ * @return  void
+ * @throws  RuntimeException
+ * @ignore
+ * @see http://www.php.net/manual/en/function.set-error-handler.php
+ */
 function services_hyperestraier_utility_open_url_error_handler($errno, $errstr,
         $errfile = '', $errline = 0, $errcontext = null)
 {
@@ -295,6 +311,8 @@ function services_hyperestraier_utility_open_url_error_handler($errno, $errstr,
     }
     throw new RuntimeException($message, $code);
 }
+
+// }}}
 
 /*
  * Local variables:
