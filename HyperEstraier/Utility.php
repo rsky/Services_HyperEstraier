@@ -45,6 +45,7 @@
 
 // {{{ load dependencies
 
+require_once 'Services/HyperEstraier.php';
 require_once 'Services/HyperEstraier/Error.php';
 require_once 'Services/HyperEstraier/HttpResponse.php';
 
