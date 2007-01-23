@@ -34,7 +34,7 @@ $notes = '* Relicensed under MIT license.
 $packagexml = new PEAR_PackageFileManager2;
 $packagexml->setOptions(array(
     //'packagefile'       => 'package2.xml',
-    'baseinstalldir'    => 'Services',
+    'baseinstalldir'    => '/',
     'packagedirectory'  => dirname(__FILE__),
     'filelistgenerator' => 'file',
     'ignore'    => array(
