@@ -58,7 +58,7 @@ require_once 'Services/HyperEstraier/Utility.php';
  * @author      Ryusuke SEKIYAMA <rsky0711@gmail.com>
  * @version     Release: @package_version@
  */
-class Services_HyperEstraier_NodeResult implements IteratorAggregate
+class Services_HyperEstraier_NodeResult implements IteratorAggregate, Countable
 {
     // {{{ properties
 
@@ -131,6 +131,20 @@ class Services_HyperEstraier_NodeResult implements IteratorAggregate
     public function getIterator()
     {
         return new Services_HyperEstraier_NodeResultIterator($this);
+    }
+
+    // }}}
+    // {{{ Countable implementation
+
+    /**
+     * Get the number of the document objects.
+     *
+     * @return  int     The number of the document objects.
+     * @access  public
+     */
+    public function count()
+    {
+        return $this->docNum();
     }
 
     // }}}
@@ -218,12 +232,12 @@ class Services_HyperEstraier_NodeResultIterator implements Iterator
     private $pos;
 
     /**
-     * The key of the last result document object
+     * The number of the document objects
      *
      * @var int
      * @access  private
      */
-    private $end;
+    private $docnum;
 
     // }}}
     // {{{ constructor
@@ -239,7 +253,7 @@ class Services_HyperEstraier_NodeResultIterator implements Iterator
     {
         $this->nres = $nres;
         $this->pos = 0;
-        $this->end = $this->nres->docNum() - 1;
+        $this->docnum = $this->nres->docNum();
     }
 
     // }}}
@@ -298,7 +312,7 @@ class Services_HyperEstraier_NodeResultIterator implements Iterator
      */
     public function valid()
     {
-        return $this->pos <= $this->end;
+        return $this->pos < $this->docnum;
     }
 
     // }}}

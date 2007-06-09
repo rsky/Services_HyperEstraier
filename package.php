@@ -16,16 +16,19 @@ Also, it is useful as search utilities of mail boxes and file servers.';
 
 // information of cureent version
 $version      = '0.6.0';
-$apiversion   = '1.4.9';
+$apiversion   = '1.4.10';
 $stability    = 'beta';
 $apistability = 'stable';
 
 //$notes = '* Changed channel __uri to pear.paradogs.jp (pdx).';
 $notes = '* Relicensed under MIT license.
 * Change channel from pear.php.net (pear) to __uri.
-* Catch up with Hyper Estraier 1.4.9.
+* Catch up with Hyper Estraier 1.4.10.
 * Add support for the attribute distinction filter in Condition class.
   (Services_HyperEstraier_Condition::{set,get}Distinct($name))
+* Add support for the substiture score in Document class.
+  (Services_HyperEstraier_Document::{set,get}Score($score))
+* Add support for interface Countable in NodeResult class.
 * Add class Services_HyperEstraier_Error which wraps PEAR_ErrorStack.
 * Add support for HTTP stream with cURL wrapper.
 * Remove support for PEAR::HTTP_Request.';

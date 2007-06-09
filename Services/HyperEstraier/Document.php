@@ -102,6 +102,14 @@ class Services_HyperEstraier_Document
      */
     private $_kwords;
 
+    /**
+     * Substiture score
+     *
+     * @var int
+     * @access  private
+     */
+    private $_score;
+
     // }}}
     // {{{ constructor
 
@@ -121,6 +129,7 @@ class Services_HyperEstraier_Document
         $this->_dtexts = array();
         $this->_htexts = array();
         $this->_kwords = null;
+        $this->_score = -1;
         if (strlen($draft)) {
             $lines = explode("\n", $draft);
             $num = 0;
@@ -132,7 +141,7 @@ class Services_HyperEstraier_Document
                     break;
                 }
                 if (substr($line, 0, 1) == '%') {
-                    if (preg_match('/^%VECTOR\\t/', $line)) {
+                    if (substr($line, 8) == "%VECTOR\t") {
                         $fields = explode("\t", $line);
                         $i = 1;
                         $flen = count($fields) - 1;
@@ -140,6 +149,9 @@ class Services_HyperEstraier_Document
                             $this->_kwords[$fields[$i]] = $fields[$i+1];
                             $i += 2;
                         }
+                    } elseif (substr($line, 7) == "%SCORE\t") {
+                        $fields = explode("\t", $line);
+                        $this->_score = (int)$fields[1];
                     }
                     continue;
                 }
@@ -265,6 +277,22 @@ class Services_HyperEstraier_Document
         $this->_kwords = $kwords;
     }
 
+    /**
+     * Set the substitute score.
+     *
+     * @param   int     $score  The substitute score.
+     *                          It it is negative, the substitute score setting is nullified.
+     * @return  void
+     * @access  public
+     */
+    public function setScore($score)
+    {
+        SERVICES_HYPERESTRAIER_DEBUG && Services_HyperEstraier_Utility::checkTypes(
+            array($score, 'integer')
+        );
+        $this->_score = $score;
+    }
+
     // }}}
     // {{{ getter methods
 
@@ -369,6 +397,17 @@ class Services_HyperEstraier_Document
     public function getKeywords()
     {
         return $this->_kwords;
+    }
+
+    /**
+     * Get the substitute score.
+     *
+     * @return  int     The substitute score or -1 if it is not set.
+     * @access  public
+     */
+    public function getScore()
+    {
+        return $this->_score;
     }
 
     // }}}
